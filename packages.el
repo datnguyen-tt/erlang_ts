@@ -24,10 +24,8 @@
   '(
     company
     erlang
-    ;; my edts
     edts
     flycheck
-    ;; my erl-trace
     (erl-trace :location (recipe
                         :fetcherer github
                         :repo "datttnwork7247/erl-trace"
