@@ -1,73 +1,110 @@
 #+TITLE: erlang_ts layer
 
-#+TAGS: erlang|layer|edts|multi-paradigm|programming|erl-trace
+#+TAGS: erlang|layer|edts|lsp|programming|erl-trace
 
 [[img/erlang_ts.png]]
 
-# TOC links should be GitHub style anchors.
 * Table of Contents                                       :TOC_4_gh:noexport:
 - [[#description][Description]]
-  - [[#features][Features:]]
+  - [[#features][Features]]
 - [[#install][Install]]
+- [[#configuration][Configuration]]
+  - [[#layer-variables][Layer variables]]
+  - [[#optional-tools][Optional tools]]
 - [[#key-bindings][Key bindings]]
+- [[#troubleshooting][Troubleshooting]]
 
 * Description
-This layer adds Erlang to [[https://www.spacemacs.org/][Spacemacs]].
-Use [[https://github.com/sebastiw/edts][EDTS]] for code navigation. Also include other awesome packages such as erl-trace, company, flycheck, cmpload
+This layer adds Erlang development support to [[https://www.spacemacs.org/][Spacemacs]].
+It provides a sensible default setup for editing Erlang, optional code navigation
+backends (EDTS or LSP), on-the-fly syntax checking, and convenient helpers
+for tracing and common project tasks.
 
-** Features:
-  + [[https://www.erlang.org/][erlang]]: Programming language used to build massively scalable soft real-time systems with requirements on high availability.
-  + [[https://github.com/sebastiw/edts][edts]]: Erlang Development Tool Suite 
-  + [[https://develop.spacemacs.org/layers/+completion/auto-completion/README.html][company]] : Auto-completion to all supported language layers.
-  + [[https://github.com/flycheck/flycheck][flycheck]]: Modern on-the-fly syntax checking extension
-  + [[https://github.com/datttnwork7247/cmpload][cmpload]]: My erlang live code update tool
-  + [[https://github.com/datttnwork7247/erl-trace][erl-trace]] : My simple erlang debug tool by put io:format in erlang files
+** Features
+- =erlang=: Major mode for Erlang with indentation, imenu, skeletons, and REPL.
+- =company=: Auto-completion via company backends.
+- =flycheck=: On-the-fly syntax checking when the =syntax-checking= layer is used.
+- =EDTS=: Erlang Development Tool Suite for navigation and refactoring (optional).
+- =LSP=: Use =erlang_ls= through the Spacemacs =lsp= layer (optional).
+- =erl-trace=: Quick insertion of =io:format= traces and helpers (optional).
+- =rebar3= helpers: Compile, test and run dialyzer directly from Spacemacs.
+- =cmpload=: Live code update helper (optional).
 
 * Install
-
-Clone the layer to your spacemacs private directory
-  #+BEGIN_SRC bash
-  git clone https://github.com/datttnwork7247/erlang_ts.git ~/.emacs.d/private/erlang_ts
-  #+END_SRC
-
-To use this configuration layer, add it to your =~/.spacemacs=. You will need to
-add =erlang_ts= to the existing =dotspacemacs-configuration-layers= list in this
-file.
-
+Clone the layer to your Spacemacs private layers directory:
 #+BEGIN_SRC bash
-(setq-default dotspacemacs-configuration-layers
-              '(erlang_ts))
+git clone https://github.com/datttnwork7247/erlang_ts.git ~/.emacs.d/private/erlang_ts
 #+END_SRC
 
+Enable the layer in your =~/.spacemacs=:
+#+BEGIN_SRC emacs-lisp
+(setq-default dotspacemacs-configuration-layers
+              '(
+                ;; optional, for LSP support
+                ;; (lsp :variables lsp-enable-file-watchers nil)
+                ;; optional, for completion and flycheck
+                auto-completion
+                syntax-checking
+
+                ;; this layer
+                erlang_ts))
+#+END_SRC
+
+* Configuration
+** Layer variables
+You can customize the behavior via these variables (set them in the
+=dotspacemacs/user-config= section or as layer variables):
+
+- =erlang_ts-backend=: backend for navigation and xref. One of =xref= (default),
+  =edts=, or =lsp=. When set to =lsp=, enable the Spacemacs =lsp= layer and install
+  =erlang_ls=.
+- =erlang_ts-enable-edts=: install and enable EDTS integration (default: =t=).
+- =erlang_ts-enable-erl-trace=: enable =erl-trace= helpers (default: =t=).
+- =erlang_ts-enable-cmpload=: enable =cmpload= helpers (default: =nil=).
+- =erlang_ts-rebar3-command=: command used to invoke rebar3 (default: ="rebar3"=).
+
+Example:
+#+BEGIN_SRC emacs-lisp
+(setq erlang_ts-backend 'lsp
+      erlang_ts-enable-edts nil
+      erlang_ts-enable-erl-trace t
+      erlang_ts-rebar3-command "rebar3")
+#+END_SRC
+
+** Optional tools
+- EDTS: [[https://github.com/sebastiw/edts][sebastiw/edts]]
+- LSP: [[https://github.com/erlang-ls/erlang_ls][erlang_ls]] and Spacemacs =lsp= layer
+- erl-trace: [[https://github.com/datttnwork7247/erl-trace][datttnwork7247/erl-trace]]
+- cmpload: [[https://github.com/datttnwork7247/cmpload][datttnwork7247/cmpload]]
 
 * Key bindings
-** erlang_ts
-| Key binding | Description                                                     |
-|-------------+-----------------------------------------------------------------|
-| ~C-c C-a~   | Align arrows ("->")                                             |
-| ~C-c C-c~   | Comment region                                                  |
-| ~C-c C-d~   | Display function manual at point                                |
-| ~C-c C-j~   | Generate a new clause                                           |
-| ~C-c C-q~   | Indent function                                                 |
-| ~C-c C-u~   | Uncomment region                                                |
-| ~C-c C-y~   | Insert, at the point, the argument list of the previous clause. |
-| ~C-c C-z~   | Display the erlang-shell or start a new                         |
-| ~C-c M-a~   | Move backward to previous start of clause.                      |
-| ~C-c M-e~   | Move to the end of the current clause.                          |
-| ~C-c M-h~   | Put mark at end of clause, point at beginning.                  |
+** Navigation
+| Key binding | Description           |
+|-------------+-----------------------|
+| ~SPC m g d~ | Goto definition       |
+| ~SPC m g b~ | Go back               |
+| ~M .~       | Goto definition (EDTS/xref/LSP) |
+| ~M ,~       | Go back               |
 
-** EDTS
-| Key binding | Description                  |
-|-------------+------------------------------|
-| ~M .~       | EDTS find source under point |
-| ~M <comma>~ | EDTS find source unwind      |
-| ~C-c C-d w~ | EDTS find who call           |
-| ~C-c C-d~   | EDTS extra commands          |
+** Trace (erl-trace)
+| Key binding  | Description                                 |
+|--------------+---------------------------------------------|
+| ~SPC m t i~  | Insert trace at point                       |
+| ~SPC m t e~  | Extra commands (run cmd)                    |
+| ~SPC m t r~  | Store parameters for insertion              |
 
-** erl-trace
-| Key binding | Description                                 |
-|-------------+---------------------------------------------|
-| ~C-c C-t~   | erl-trace insert trace under clause         |
-| ~C-c C-e~   | erl-trace extra commands                    |
-| ~C-c C-r~   | erl-trace store parameter (used in C-c C-t) |
+** Build (rebar3)
+| Key binding  | Description             |
+|--------------+-------------------------|
+| ~SPC m b c~  | rebar3 compile          |
+| ~SPC m b t~  | rebar3 eunit            |
+| ~SPC m b d~  | rebar3 dialyzer         |
+
+* Troubleshooting
+- Package not found errors: this layer uses explicit recipes for =edts=, =erl-trace=
+  and =cmpload= to avoid ELPA/MELPA gaps. Ensure your network is available on the
+  first startup so Spacemacs can fetch them.
+- EDTS issues: EDTS requires an Erlang/OTP installation and a running node. If you
+  encounter initialization errors, try switching =erlang_ts-backend= to =xref= or =lsp=
+  until EDTS is set up.
 

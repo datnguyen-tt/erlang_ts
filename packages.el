@@ -22,70 +22,54 @@
 
 (defconst erlang_ts-packages
   '(
-    company
-    erlang
-    ;; my edts
-    edts
-    flycheck
-    ;; my erl-trace
-    (erl-trace :location (recipe
-                        :fetcherer github
-                        :repo "datttnwork7247/erl-trace"
-                        :file ("*")
-                        ))
+    (company :toggle (configuration-layer/layer-used-p 'auto-completion))
+    (flycheck :toggle (configuration-layer/layer-used-p 'syntax-checking))
+    (erlang :location elpa)
+    (edts :toggle erlang_ts-enable-edts
+          :location (recipe :fetcher github :repo "sebastiw/edts"))
+    (erl-trace :toggle erlang_ts-enable-erl-trace
+               :location (recipe
+                          :fetcher github
+                          :repo "datttnwork7247/erl-trace"
+                          :files ("*")))
+    (cmpload :toggle erlang_ts-enable-cmpload
+             :location (recipe
+                        :fetcher github
+                        :repo "datttnwork7247/cmpload"
+                        :files ("*")))
     )
-  )
+  "List of all packages to install and/or initialize for this layer.")
 
 (defun erlang_ts/post-init-company ()
   ;; backend specific
-  (add-hook 'erlang-mode-local-vars-hook #'spacemacs//erlang-setup-company))
+  (add-hook 'erlang-mode-local-vars-hook #'erlang_ts//setup-company))
+
+(defun erlang_ts/post-init-flycheck ()
+  (add-hook 'erlang-mode-hook #'flycheck-mode))
 
 (defun erlang_ts/init-erlang ()
   (use-package erlang
     :defer t
-    ;; explicitly run prog-mode hooks since erlang mode does is not
-    ;; derived from prog-mode major-mode
-    :hook (erlang-mode . spacemacs/run-prog-mode-hooks)
-    (erlang-mode . spacemacs//erlang-default)
-    (erlang-mode-local-vars . spacemacs//erlang-setup-backend)
+    ;; Erlang mode is not derived from prog-mode
+    :hook
+    ((erlang-mode . erlang_ts//maybe-run-prog-hooks)
+     (erlang-mode-local-vars . erlang_ts//setup-backend))
     :init
-    (progn
-      (setq erlang-compile-extra-opts '(debug_info)))
-    :config (require 'erlang-start)))
+    (setq erlang-compile-extra-opts '(debug_info))
+    :config
+    (require 'erlang-start)))
 
 (defun erlang_ts/init-edts ()
   (use-package edts
     :defer t
-    :init
-    (add-hook 'after-init-hook (lambda () (require 'edts-mode)))
-    :config
-    (spacemacs/declare-prefix-for-mode 'erlang-mode "mn" "navigate")
-    (spacemacs/set-leader-keys-for-major-mode 'erlang-mode
-      "M-." 'edts-find-source-under-point
-      "M-," 'edts-find-source-unwind
-      )
-    (evil-define-key 'normal erlang-mode-map
-      (kbd "s-.") 'edts-find-source-under-point
-      (kbd "s-,") 'edts-find-source-unwind)
-    ))
+    :commands (edts-mode edts-find-source-under-point edts-find-source-unwind)))
 
 (defun erlang_ts/init-erl-trace ()
   (use-package erl-trace
     :defer t
-    :init
-    (add-hook 'after-init-hook (lambda () (require 'erl-trace)))
-    :config
-    (spacemacs/set-leader-keys-for-major-mode 'erlang-mode
-      "C-c C-t" 'erl-trace-insert
-      "C-c C-e" 'erl-trace-run-cmd
-      "C-c C-r" 'erl-trace-store
-      ))
-  )
+    :commands (erl-trace-insert erl-trace-run-cmd erl-trace-store)))
 
-(defun erlang_ts/post-init-flycheck ()
-  (spacemacs/enable-flycheck 'erlang-mode))
-
-
-(defun erlang_ts/post-init-edts ()
-  (unless (ignore-errors (require 'edts-start))
-    (warn "EDTS is not installed in this environment!")))
+(defun erlang_ts/init-cmpload ()
+  (use-package cmpload
+    :defer t
+    :commands (cmpload-load cmpload-reload cmpload-compile)))
